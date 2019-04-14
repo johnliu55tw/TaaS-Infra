@@ -1,0 +1,87 @@
+version: "3"
+services:
+  sut1:
+    build: ./alpine-debug-net
+    container_name: "sut1"
+    stdin_open: true
+    tty: true
+    networks:
+      pri1:
+        ipv4_address: 172.28.1.11
+
+  sut2:
+    build: ./alpine-debug-net
+    container_name: "sut2"
+    stdin_open: true
+    tty: true
+    networks:
+      pri1:
+        ipv4_address: 172.28.1.12
+
+  sut3:
+    build: ./alpine-debug-net
+    container_name: "sut3"
+    stdin_open: true
+    tty: true
+    networks:
+      pri2:
+        ipv4_address: 172.28.2.11
+
+  gw1:
+    build: ./alpine-gw
+    container_name: "gw1"
+    stdin_open: true
+    tty: true
+    environment:
+      IN_NET: "172.28.1.0/24"
+      OUT_DEV: "eth1"
+    cap_add:
+      - NET_ADMIN
+    networks:
+      pri1:
+        ipv4_address: 172.28.1.254
+      pub:
+        ipv4_address: 172.30.0.101
+
+  gw2:
+    build: ./alpine-gw
+    container_name: "gw2"
+    stdin_open: true
+    tty: true
+    environment:
+      IN_NET: "172.28.2.0/24"
+      OUT_DEV: "eth1"
+    cap_add:
+      - NET_ADMIN
+    networks:
+      pri2:
+        ipv4_address: 172.28.2.254
+      pub:
+        ipv4_address: 172.30.0.102
+
+  taas:
+    build: ./alpine-debug-net
+    container_name: "taas"
+    stdin_open: true
+    tty: true
+    networks:
+      - pub
+
+networks:
+  pri1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.1.0/24
+
+  pri2:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.2.0/24
+
+  pub:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
